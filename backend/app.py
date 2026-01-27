@@ -61,12 +61,12 @@ app.add_middleware(
 
 # ==== HELPER FUNCTIONS ====
 
-def get_face_embedding(image):
+def get_face_embedding(image, silent=False):
     """
     Detects face and returns a Histogram 'embedding' for comparison.
     """
     if image is None:
-        print("[ERROR] No image provided to get_face_embedding")
+        if not silent: print("[ERROR] No image provided to get_face_embedding")
         return None
         
     height, width, _ = image.shape
@@ -76,10 +76,10 @@ def get_face_embedding(image):
     results = detector.process(rgb_image)
 
     if not results or not results.detections:
-        print("[WARNING] No face detected by MediaPipe")
+        if not silent: print("[WARNING] No face detected by MediaPipe")
         return None
 
-    print(f"[INFO] Detected {len(results.detections)} face(s)")
+    if not silent: print(f"[INFO] Detected {len(results.detections)} face(s)")
 
     detection = results.detections[0]
     bboxC = detection.location_data.relative_bounding_box
@@ -95,7 +95,8 @@ def get_face_embedding(image):
 
     face_crop = cv2.resize(face_crop, (128, 128))
     hsv_crop = cv2.cvtColor(face_crop, cv2.COLOR_BGR2HSV)
-    hist = cv2.calcHist([hsv_crop], [0, 1], None, [180, 256], [0, 180, 0, 256])
+    # Using 32x32 H-S histogram for better performance/accuracy balance
+    hist = cv2.calcHist([hsv_crop], [0, 1], None, [32, 32], [0, 180, 0, 256])
     cv2.normalize(hist, hist, 0, 1, cv2.NORM_MINMAX)
     
     return hist
@@ -113,7 +114,7 @@ def load_known_faces():
         for file_path in img_files:
             img = cv2.imread(file_path)
             if img is not None:
-                hist = get_face_embedding(img)
+                hist = get_face_embedding(img, silent=True)
                 if hist is not None:
                     name = os.path.basename(os.path.dirname(file_path)) or os.path.splitext(os.path.basename(file_path))[0]
                     known_faces.append({"name": name, "hist": hist})
@@ -122,7 +123,8 @@ def load_known_faces():
     db_students = list(students_collection.find({"faceEmbedding": {"$exists": True}}))
     for s in db_students:
         try:
-            hist = np.array(s["faceEmbedding"], dtype=np.float32).reshape(180, 256)
+            # Reshape based on new 32x32 size
+            hist = np.array(s["faceEmbedding"], dtype=np.float32).reshape(32, 32)
             known_faces.append({"name": s["name"], "hist": hist})
         except:
             continue
@@ -135,6 +137,19 @@ async def health():
 
 @app.on_event("startup")
 async def startup_event():
+    print("[INFO] Cleaning up legacy database indexes...")
+    try:
+        # Log indexes for debugging
+        idxs = students_collection.index_information()
+        print(f"[INFO] Current Student Indexes: {list(idxs.keys())}")
+        
+        # Drop the problematic index if it exists
+        if "enrollmentNumber_1" in idxs:
+            students_collection.drop_index("enrollmentNumber_1")
+            print("[INFO] Dropped legacy enrollmentNumber index.")
+    except Exception as e:
+        print(f"[DEBUG] Index cleanup note: {e}")
+
     print("[INFO] Starting face cache loader in background...")
     threading.Thread(target=load_known_faces, daemon=True).start()
 
@@ -162,6 +177,7 @@ async def login(data: LoginRequest):
 async def get_students():
     students = list(students_collection.find())
     for s in students:
+        s["id"] = str(s["_id"]) # Frontend expects 'id'
         s["_id"] = str(s["_id"])
         if "faceEmbedding" in s: del s["faceEmbedding"]
     return students

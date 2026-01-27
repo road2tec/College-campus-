@@ -26,15 +26,19 @@ students_collection = db["students"]
 attendance_collection = db["attendance"]
 
 def get_face_embedding(face_img):
+    # Resize to match training/admin capture
+    face_img = cv2.resize(face_img, (128, 128))
     hsv_face = cv2.cvtColor(face_img, cv2.COLOR_BGR2HSV)
-    hist = cv2.calcHist([hsv_face], [0, 1, 2], None, [8, 8, 8], [0, 180, 0, 256, 0, 256])
-    cv2.normalize(hist, hist)
+    # Using 32x32 H-S histogram to match backend/app.py
+    hist = cv2.calcHist([hsv_face], [0, 1], None, [32, 32], [0, 180, 0, 256])
+    cv2.normalize(hist, hist, 0, 1, cv2.NORM_MINMAX)
     return hist.flatten().tolist()
 
 def compare_embeddings(emb1, emb2):
     v1 = np.array(emb1, dtype=np.float32)
     v2 = np.array(emb2, dtype=np.float32)
-    return cv2.compareHist(v1.reshape(8,8,8), v2.reshape(8,8,8), cv2.HISTCMP_CORREL)
+    # Reshape to 32x32 as used in backend
+    return cv2.compareHist(v1.reshape(32, 32), v2.reshape(32, 32), cv2.HISTCMP_CORREL)
 
 def mark_attendance(student):
     today = datetime.now().strftime("%Y-%m-%d")
