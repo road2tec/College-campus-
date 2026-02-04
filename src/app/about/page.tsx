@@ -56,14 +56,14 @@ export default function AboutPage() {
                 <section className="bg-[#9d2222] text-white p-10 rounded-2xl shadow-xl">
                     <div className="flex flex-col md:flex-row gap-8 items-center">
                         <div className="w-32 h-32 bg-gray-300 rounded-full border-4 border-white shrink-0 overflow-hidden">
-                            <img src="/principal_real.jpg" alt="Principal Dr. Pravin Nemade" className="w-full h-full object-cover" />
+                            <img src="/principal_real.jpg" alt="Principal Dr. Shrinivas Shirkande" className="w-full h-full object-cover" />
                         </div>
                         <div>
                             <h3 className="text-2xl font-bold mb-2">From the Principal's Desk</h3>
                             <p className="opacity-90 leading-relaxed italic mb-4">
                                 "We believe in holistic development. Education is not just about syllabus, but about building character and capability. S.B. Patil College provides the perfect ecosystem for this growth."
                             </p>
-                            <p className="font-bold text-yellow-300">– Dr. Pravin Nemade</p>
+                            <p className="font-bold text-yellow-300">– Dr. Shrinivas Shirkande</p>
                             <p className="text-xs opacity-70">Principal, SBPCOE</p>
                         </div>
                     </div>

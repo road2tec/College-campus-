@@ -231,11 +231,11 @@ export default function Home() {
                         <div className="md:w-1/3 w-full">
                             <div className="bg-gray-100 rounded-lg p-2 border border-gray-200">
                                 <div className="aspect-[3/4] bg-gray-200 w-full relative overflow-hidden flex items-end justify-center">
-                                    <img src="/principal_real.jpg" alt="Principal Dr. Pravin Nemade" className="w-full h-full object-cover object-top" />
+                                    <img src="/principal_real.jpg" alt="Principal Dr. Shrinivas Shirkande" className="w-full h-full object-cover object-top" />
                                 </div>
                             </div>
                             <div className="mt-4">
-                                <h3 className="text-xl font-bold text-gray-800">Dr. Pravin Nemade</h3>
+                                <h3 className="text-xl font-bold text-gray-800">Dr. Shrinivas Shirkande</h3>
                                 <p className="text-[#9d2222] font-semibold">Principal</p>
                                 <div className="flex gap-2 mt-2">
                                     <div className="w-8 h-8 bg-black text-white flex items-center justify-center text-xs">f</div>
